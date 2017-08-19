@@ -8,6 +8,7 @@ from scrapy.http import Request
 import requests
 import json
 from sina.items import InformationItem, TweetsItem, FollowsItem, FansItem, InfoDetailsItem
+from sina.settings import Tweets_Num, IDS
 
 
 class SinaspiderSpider(CrawlSpider):
@@ -23,9 +24,7 @@ class SinaspiderSpider(CrawlSpider):
     #     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
     #     "Host": "www.douban.com",
     # }
-    ids = [
-        "2693420092",
-    ]
+    ids = IDS
     scrawl_ID = set(ids)  # 记录待爬的微博ID
     finish_ID = set()  # 记录已爬的微博ID
 
@@ -57,13 +56,18 @@ class SinaspiderSpider(CrawlSpider):
                 informationItems["Num_Tweets"] = informations["userInfo"]["statuses_count"]
                 informationItems["Num_Follows"] = informations["userInfo"]["follow_count"]
                 informationItems["Num_Fans"] = informations["userInfo"]["followers_count"]
+                informationItems["User_Url"] = informations["userInfo"]["profile_url"]
+                informationItems['Avatar'] = informations["userInfo"]["profile_image_url"]
+                informationItems['Cover'] = informations["userInfo"]['cover_image_phone']
+                informationItems['Used'] = False
                 yield informationItems
 
             # 微博入口
             tweets_container_id = informations["tabsInfo"]["tabs"][1]["containerid"]
             url_tweets = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s" % (
                 response.meta["ID"], tweets_container_id)
-            yield Request(url=url_tweets, meta={"ID": response.meta["ID"]}, callback=self.parseTweets, dont_filter=True)
+            yield Request(url=url_tweets, meta={"ID": response.meta["ID"],'owner':informations["userInfo"]["screen_name"]},
+            callback=self.parseTweets, dont_filter=True)
 
             # 详细信息入口
             info_container_tabs = informations["tabsInfo"]["tabs"]
@@ -75,7 +79,7 @@ class SinaspiderSpider(CrawlSpider):
                     print info_container_id
                     url_details = 'https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s' % (
                         response.meta["ID"], info_container_id)
-                    yield Request(url=url_details, meta={"detail_id": info_container_id}, callback=self.parseDetails, dont_filter=True)
+                    yield Request(url=url_details, meta={"detail_id": info_container_id,'ID':response.meta["ID"]}, callback=self.parseDetails, dont_filter=True)
 
             # 关注者入口
             # if informations.get("follow_scheme", ""):
@@ -112,6 +116,7 @@ class SinaspiderSpider(CrawlSpider):
             infos = json.loads(response.body)
             details = InfoDetailsItem()
             details['_id'] = response.meta['detail_id']
+            details['ID'] = response.meta['ID']
             if infos.get('cards', ''):
                 cards = infos['cards']
                 for card in cards:
@@ -149,6 +154,7 @@ class SinaspiderSpider(CrawlSpider):
 
             tweets = json.loads(response.body)
             ID = response.meta["ID"]
+            Owner = response.meta["owner"]
             page = ''
             containerid = ''
             if tweets.get("cards", ""):
@@ -166,8 +172,9 @@ class SinaspiderSpider(CrawlSpider):
                         tweetsItems = TweetsItem()
                         tweetsItems["_id"] = card["itemid"]
                         tweetsItems["ID"] = ID
-                        tweetsItems["Content"] = json.dumps(
-                            mblog).decode('unicode-escape')
+                        tweetsItems["Owner"] = Owner
+                        tweetsItems["Used"] = False
+                        tweetsItems["Content"] = json.dumps(mblog).decode('unicode-escape')
                         tweetsItems["PubTime"] = mblog["created_at"]
                         tweetsItems["Like"] = mblog["attitudes_count"]
                         tweetsItems["Comment"] = mblog["comments_count"]
@@ -176,20 +183,27 @@ class SinaspiderSpider(CrawlSpider):
                         pics = mblog.get('pics', '')
                         if pics:
                             img_urls = []
+                            small_img_urls = []
                             # print mblog["pics"]
                             for pic in pics:
                                 url = pic["large"]['url']
+                                surl = pic['url']
                                 # print url
                                 img_urls.append(url)
-
+                                small_img_urls.append(surl)
                             tweetsItems["Imgs"] = img_urls
+                            tweetsItems['SmallImgs'] = small_img_urls
                         else:
                             tweetsItems["Imgs"] = []
+                            tweetsItems['SmallImgs'] = []
                     yield tweetsItems
                 print "###########################"
                 print "Tweetspage: " + page
                 print "###########################"
-                if page >= 10:
+                if page >= Tweets_Num:
+                    print "###########################"
+                    print "Fetch Tweets Finish"
+                    print "###########################"
                     return
                 url_tweets = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s&page=%s" % (
                     ID, containerid, page)

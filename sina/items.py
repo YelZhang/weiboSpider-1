@@ -11,10 +11,13 @@ class InformationItem(Item):
     Num_Tweets = Field()  # 微博数
     Num_Follows = Field()  # 关注数
     Num_Fans = Field()  # 粉丝数
-
+    User_Url = Field() #用户的微博url
+    Used = Field()
+    Avatar = Field() #用户的头像url
+    Cover = Field() #用户的背景
 
 class InfoDetailsItem(Item):
-    _id = Field()  # 用户ID
+    _id = Field()  # detail_ID
     NickName = Field()  # 昵称
     WeiboTag = Field()  # 微博标签
     Gender = Field()  # 性别
@@ -23,6 +26,7 @@ class InfoDetailsItem(Item):
     School = Field()  # 学校
     Rank = Field()  # 等级
     RegTime = Field()  # 注册时间
+    ID = Field() #用户ID
 
 
 class TweetsItem(Item):
@@ -35,7 +39,9 @@ class TweetsItem(Item):
     Transfer = Field()  # 转载数
     TweetsText = Field()  # 微博的具体文字
     Imgs = Field()  # 微博中图片的链接
-
+    SmallImgs = Field() #微博图片缩略图
+    Owner = Field() #发微博的主人
+    Used = Field() #这条微博是否发过
 
 class FollowsItem(Item):
     _id = Field()  # 好友ID
