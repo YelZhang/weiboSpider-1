@@ -2,14 +2,13 @@
 import sys
 import time
 from selenium import webdriver
-
+from account import WEIBO_ACCOUNT
 reload(sys)
 sys.setdefaultencoding('utf8')
-myWeiBo=[
-	{'no':'17029939058','psw':'aa123123'},
-	{'no':'13084683920','psw':'aa123123'},
-	{'no':'13105686146','psw':'aa123123'},
-]
+# myWeiBo=[
+# 	{'no':'your account','psw':'your password'},
+# ]
+myWeiBo = WEIBO_ACCOUNT
 
 def getCookies(weibo):
 	print "Start crawl cookies!!!!"
