@@ -26,7 +26,6 @@ def getCookies(weibo):
 			while "登录 - 新浪微博" in driver.title and failure<5:
 				failure+=1
 				driver.set_window_size(1920, 1080)
-				
 				username=driver.find_element_by_id("loginName")
 				username.clear()
 				username.send_keys(account)
