@@ -58,7 +58,9 @@ class SinaspiderSpider(CrawlSpider):
                 informationItems["Num_Fans"] = informations["userInfo"]["followers_count"]
                 informationItems["User_Url"] = informations["userInfo"]["profile_url"]
                 informationItems['Avatar'] = informations["userInfo"]["profile_image_url"]
+                informationItems['LocalAvatar'] = ''
                 informationItems['Cover'] = informations["userInfo"]['cover_image_phone']
+                informationItems['LocalCover'] = ''
                 informationItems['Used'] = False
                 yield informationItems
 
@@ -174,6 +176,7 @@ class SinaspiderSpider(CrawlSpider):
                         tweetsItems["ID"] = ID
                         tweetsItems["Owner"] = Owner
                         tweetsItems["Used"] = False
+                        tweetsItems['LocalImgs'] = []
                         tweetsItems["Content"] = json.dumps(mblog).decode('unicode-escape')
                         tweetsItems["PubTime"] = mblog["created_at"]
                         tweetsItems["Like"] = mblog["attitudes_count"]

@@ -17,8 +17,8 @@ A spider based on scrapy to get infomation from https://m.weibo.cn/
 - And then you run this order in the derectory under CFG file: scrapy crawl sinaSpider
 
 ###Todo List
-- [ ] add search spider
+- [ ] add search spider
 - [ ] delete same infos
 - [ ] get basic infos of Hust stars
-- [ ] use FE pages to mongodb
+- [ ] use FE pages to mongodb
 - [ ] distributed crawler

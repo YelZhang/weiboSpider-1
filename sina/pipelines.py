@@ -20,6 +20,7 @@ def save_img(img_url,file_name,file_path):
        #下载图片，并保存到文件夹中
         urllib.urlretrieve(img_url,filename=filename)
         print '已将',filename,'保存到',file_path,'中'
+        return file_suffix
     except IOError as e:
         print '文件操作失败',e
     except Exception as e:
@@ -41,29 +42,37 @@ class MongoDBPipleline(object):
             for data in item:
                 if not data:
                     raise DropItem("Missing data!")
-            self.Information.update(
-                {'_id': item['_id']}, dict(item), upsert=True)
             info_path = os.path.expanduser('~') + '/weiboimgs/' + item['NickName'] + '/info'
+            local_info_path = '~' + '/weiboimgs/' + item['NickName'] + '/info'
             if item['Avatar']:
                 avatar_name = item['NickName']
-                save_img(item['Avatar'],avatar_name,info_path)
+                suffix = save_img(item['Avatar'],avatar_name,info_path)
+                item['LocalAvatar'] = local_info_path+'/'+avatar_name+suffix
+                # print 'localavatar:', item['LocalAvatar']
+                # print local_info_path+'/'+avatar_name+suffix
             if item['Cover']:
                 cover_name = item['NickName']+'-cover'
-                save_img(item['Cover'],cover_name,info_path)
+                suffix = save_img(item['Cover'],cover_name,info_path)
+                item['LocalCover'] = local_info_path+'/'+cover_name+suffix
+            self.Information.update({'_id': item['_id']}, dict(item), upsert=True)
+
 
         elif isinstance(item, TweetsItem):
             for data in item:
                 if not data:
                     raise DropItem("Missing data!")
-            self.Tweets.update({'_id': item['_id']}, dict(item), upsert=True)
             file_path = os.path.expanduser('~')+'/weiboimgs/'+item['Owner']+'/'+item['_id']
+            local_file_path = '~'+'/weiboimgs/'+item['Owner']+'/'+item['_id']
             # print file_path
             if item['Imgs']:
                 for index, img in enumerate(item['Imgs']):
-                    save_img(img,index,file_path)
+                    suffix = save_img(img,index,file_path)
+                    temp = local_file_path+'/'+str(index)+suffix
+                    item['LocalImgs'].append(temp)
             else:
                 pass
                 # print index, img
+            self.Tweets.update({'_id': item['_id']}, dict(item), upsert=True)
 
         elif isinstance(item, FollowsItem):
             for data in item:

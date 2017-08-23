@@ -14,7 +14,9 @@ class InformationItem(Item):
     User_Url = Field() #用户的微博url
     Used = Field()
     Avatar = Field() #用户的头像url
+    LocalAvatar = Field() #头像的本地url
     Cover = Field() #用户的背景
+    LocalCover = Field() #用户的本地cover
 
 class InfoDetailsItem(Item):
     _id = Field()  # detail_ID
@@ -40,6 +42,7 @@ class TweetsItem(Item):
     TweetsText = Field()  # 微博的具体文字
     Imgs = Field()  # 微博中图片的链接
     SmallImgs = Field() #微博图片缩略图
+    LocalImgs = Field() #微博图片的本地存储目录
     Owner = Field() #发微博的主人
     Used = Field() #这条微博是否发过
 
