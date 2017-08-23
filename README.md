@@ -16,6 +16,8 @@ A spider based on scrapy to get infomation from https://m.weibo.cn/
     ```
 - And then you run this order in the derectory under CFG file: scrapy crawl sinaSpider
 
+##Finally
+Do not forget to give a STAR~ Thank you
 ###Todo List
 - [ ] add search spider
 - [ ] delete same infos
