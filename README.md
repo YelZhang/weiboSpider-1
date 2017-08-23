@@ -16,9 +16,11 @@ A spider based on scrapy to get infomation from https://m.weibo.cn/
     ```
 - And then you run this order in the derectory under CFG file: scrapy crawl sinaSpider
 
-## Finally  
+## Finally
 Do not forget to give a STAR~ Thank you
-### Todo List  
+万水千山总是情，给个star行不行
+
+### Todo List
 - [ ] add search spider
 - [ ] delete same infos
 - [ ] get basic infos of Hust stars

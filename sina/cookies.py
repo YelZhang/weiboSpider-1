@@ -18,7 +18,7 @@ def getCookies(weibo):
 		account=elem['no']
 		password=elem['psw']
 		try:
-			driver=webdriver.PhantomJS()
+			driver=webdriver.Chrome()
 			driver.get(loginURL)
 			time.sleep(2)
 
@@ -62,7 +62,7 @@ def getCookies(weibo):
 			try:
 				driver.quit()
 			except Exception,e:
-				pass	
+				pass
 	return cookies
 
 cookies=getCookies(myWeiBo)
