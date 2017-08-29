@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pymongo
-from items import InformationItem, TweetsItem, FollowsItem, FansItem, InfoDetailsItem
+from items import InformationItem, TweetsItem, FollowsItem, FansItem, InfoDetailsItem,AimUserItem
 from scrapy.exceptions import DropItem
 import os
 import urllib
@@ -36,24 +36,25 @@ class MongoDBPipleline(object):
         self.Follows = db["Follows"]
         self.Fans = db["Fans"]
         self.Details = db["Details"]
+        self.Aims = db['Aims']
 
     def process_item(self, item, spider):
         if isinstance(item, InformationItem):
             for data in item:
                 if not data:
                     raise DropItem("Missing data!")
-            info_path = os.path.expanduser('~') + '/weiboimgs/' + item['NickName'] + '/info'
-            local_info_path = '~' + '/weiboimgs/' + item['NickName'] + '/info'
-            if item['Avatar']:
-                avatar_name = item['NickName']
-                suffix = save_img(item['Avatar'],avatar_name,info_path)
-                item['LocalAvatar'] = local_info_path+'/'+avatar_name+suffix
+            # info_path = os.path.expanduser('~') + '/weiboimgs/' + item['NickName'] + '/info'
+            # local_info_path = '~' + '/weiboimgs/' + item['NickName'] + '/info'
+            # if item['Avatar']:
+            #     avatar_name = item['NickName']
+                # suffix = save_img(item['Avatar'],avatar_name,info_path)
+                # item['LocalAvatar'] = local_info_path+'/'+avatar_name+suffix
                 # print 'localavatar:', item['LocalAvatar']
                 # print local_info_path+'/'+avatar_name+suffix
-            if item['Cover']:
-                cover_name = item['NickName']+'-cover'
-                suffix = save_img(item['Cover'],cover_name,info_path)
-                item['LocalCover'] = local_info_path+'/'+cover_name+suffix
+            # if item['Cover']:
+            #     cover_name = item['NickName']+'-cover'
+            #     suffix = save_img(item['Cover'],cover_name,info_path)
+            #     item['LocalCover'] = local_info_path+'/'+cover_name+suffix
             self.Information.update({'_id': item['_id']}, dict(item), upsert=True)
 
 
@@ -61,16 +62,16 @@ class MongoDBPipleline(object):
             for data in item:
                 if not data:
                     raise DropItem("Missing data!")
-            file_path = os.path.expanduser('~')+'/weiboimgs/'+item['Owner']+'/'+item['_id']
-            local_file_path = '~'+'/weiboimgs/'+item['Owner']+'/'+item['_id']
+            # file_path = os.path.expanduser('~')+'/weiboimgs/'+item['Owner']+'/'+item['_id']
+            # local_file_path = '~'+'/weiboimgs/'+item['Owner']+'/'+item['_id']
             # print file_path
-            if item['Imgs']:
-                for index, img in enumerate(item['Imgs']):
-                    suffix = save_img(img,index,file_path)
-                    temp = local_file_path+'/'+str(index)+suffix
-                    item['LocalImgs'].append(temp)
-            else:
-                pass
+            # if item['Imgs']:
+            #     for index, img in enumerate(item['Imgs']):
+                    # suffix = save_img(img,index,file_path)
+                    # temp = local_file_path+'/'+str(index)+suffix
+                    # item['LocalImgs'].append(temp)
+            # else:
+            #     pass
                 # print index, img
             self.Tweets.update({'_id': item['_id']}, dict(item), upsert=True)
 
@@ -89,4 +90,18 @@ class MongoDBPipleline(object):
                 if not data:
                     raise DropItem("Missing data!")
             self.Details.update({'_id': item['_id']}, dict(item), upsert=True)
+        elif isinstance(item, AimUserItem):
+            # for data in item:
+            #     if not data:
+            #         raise DropItem("Missing data!")
+            if self.Aims.find_one({'ID':item['ID']})==None:
+                self.Aims.insert_one(dict(item))
+                print '-----------------------------------------'
+                print 'insert_one', item['ID']
+                print '-----------------------------------------'
+            else:
+                print '-----------------------------------------'
+                print 'Aims already have'
+                print '-----------------------------------------'
+
         return item

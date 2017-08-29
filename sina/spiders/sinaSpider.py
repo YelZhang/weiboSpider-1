@@ -2,18 +2,18 @@
 import re
 import datetime
 import scrapy
-from scrapy.spider import CrawlSpider
+from scrapy.spiders import CrawlSpider
 from scrapy.selector import Selector
 from scrapy.http import Request
 import requests
 import json
 from sina.items import InformationItem, TweetsItem, FollowsItem, FansItem, InfoDetailsItem
 from sina.settings import Tweets_Num, IDS
-
+from sina.database import MongoDB
 
 class SinaspiderSpider(CrawlSpider):
     name = "sinaSpider"
-    allowed_domains = ['https://m.weibo.cn']
+    # allowed_domains = ['https://m.weibo.cn']
     # start_urls=[
     # 	5340337769,1642630543,1704116960,1310630777,
     # ]
@@ -24,19 +24,37 @@ class SinaspiderSpider(CrawlSpider):
     #     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
     #     "Host": "www.douban.com",
     # }
-    ids = IDS
-    scrawl_ID = set(ids)  # 记录待爬的微博ID
-    finish_ID = set()  # 记录已爬的微博ID
+    db = MongoDB()
+    # ids = IDS
+    # scrawl_ID = set(ids)  # 记录待爬的微博ID
+    # finish_ID = set()  # 记录已爬的微博ID
 
+    # scrawl_KEYS = set(SEARCH_KEYS)
     def start_requests(self):
-        while self.scrawl_ID.__len__():
-            ID = self.scrawl_ID.pop()
-            self.finish_ID.add(ID)
-
+        #从aims取出目标ID
+        #爬取之后放在finished中去
+        while self.db.Aims.find_one()!=None:
+            ID_item = self.db.Aims.find_one()
+            self.db.Aims.delete_one({'ID': ID_item['ID']})
+            print '-----------------------------------------'
+            print ID_item['ID']
+            print '-----------------------------------------'
+            ID = str(ID_item['ID'])
+            # self.finish_ID.add(ID)
+            #判断是否已经finish
+            if self.db.findin_finished(ID_item):
+                print '-----------------------------------------'
+                print 'WARNING:  ', ID, ' already finished'
+                print '-----------------------------------------'
+                self.db.Aims.delete_one(ID_item)
+                continue
+            else:
             # 个人信息
-            url_information0 = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s" % ID
-            print url_information0
-            yield Request(url=url_information0, meta={"ID": ID}, callback=self.parseInformation)
+                url_information0 = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s" % ID
+                print url_information0
+                yield Request(url=url_information0, meta={"ID": ID_item['ID']}, callback=self.parseInformation)
+
+
 
     def parseInformation(self, response):
         """ 抓取个人信息1 """
@@ -44,7 +62,9 @@ class SinaspiderSpider(CrawlSpider):
             print "###########################"
             print "Fetch information0 Success"
             print "###########################"
-
+            ID = response.meta['ID']
+            # self.db.Aims.delete_one({'ID': ID})
+            self.db.Finished.insert_one({'ID':ID})
             informationItems = InformationItem()
             informations = json.loads(response.body)
             # print informations

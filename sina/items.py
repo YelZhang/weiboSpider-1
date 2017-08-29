@@ -66,3 +66,13 @@ class FansItem(Item):
     Num_Follows = Field()  # 关注数
     Num_Fans = Field()  # 粉丝数
     profile_url = Field()  # 主页链接
+
+
+class AimUserItem(Item):
+    ID = Field()  # 微博ID
+    NickName = Field()  # 昵称
+    Signature = Field()  # 个人简介
+    Num_Tweets = Field()  # 微博数
+    Num_Follows = Field()  # 她关注的人数
+    Num_Fans = Field()  # 粉丝数
+    profile_url = Field()  # 主页链接
