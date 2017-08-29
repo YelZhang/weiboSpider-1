@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pymongo
-from sina.settings import SHENGHUI_KEYS
+from sina.settings import SHENGHUI_KEYS,SCHOOL_KEYS
 from account import DBADDRESS
 
 class MongoDB():
@@ -18,7 +18,7 @@ class MongoDB():
         self.Cookies = db['Cookies'] #用来记录爬取的cookies
 
     def add_searchs(self,item):
-        if self.Searchs.find_one({'key':item['key'],'isv':item['isv'],'searched':item['searched']}) == None:
+        if self.Searchs.find_one({'key':item['key'],'isv':item['isv'],'searched':item['searched'],'scho':item['scho']}) == None:
             self.Searchs.insert_one(item)
             print '-----------------------------------------'
             print 'insert_one_search', item['key']
@@ -63,19 +63,23 @@ class MongoDB():
 
 def set_keys():
     db = MongoDB()
-    for key in SHENGHUI_KEYS:
-        item = {'key': '大连摄影', 'isv': '0', 'gender': '2', 'sbirth': '1992', 'ebirth': '1998', 'searched':False}
+    for key in SCHOOL_KEYS:
+        item = {'key': '摄影', 'isv': '0', 'gender': '2', 'sbirth': '1992', 'ebirth': '1998', 'searched':False,'scho':key}
+        item2 = {'key': '摄影', 'isv': '2', 'gender': '2', 'sbirth': '1992', 'ebirth': '1998', 'searched':False,'scho':key}
+
         # print key
-        key_str = str(key)
-        print key_str
+        # key_str = str(key)
+        # print key_str
         # print type(key_str)
         # print type('约拍')
-        key_str = key_str + '摄影'
-        print key_str
-        item['key'] = key_str
-        item2 = item
-        item2['isv'] = '2'
+        # key_str = key_str + '摄影'
+        # print key_str
+        # item['key'] = key_str
+        print 'item: ',item
         db.add_searchs(item)
+        # item2 = item
+        # item2['isv'] = '2'
+        print 'item2:', item2
         db.add_searchs(item2)
 
 def set_allkeys_unsearched():
@@ -83,5 +87,5 @@ def set_allkeys_unsearched():
     db.set_all_unsearched()
 
 if __name__ == '__main__':
-    # set_keys()
-    set_allkeys_unsearched()
+    set_keys()
+    # set_allkeys_unsearched()
