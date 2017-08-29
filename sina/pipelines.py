@@ -5,6 +5,7 @@ from items import InformationItem, TweetsItem, FollowsItem, FansItem, InfoDetail
 from scrapy.exceptions import DropItem
 import os
 import urllib
+from account import DBADDRESS
 
 def save_img(img_url,file_name,file_path):
     #保存图片到磁盘文件夹 file_path中，默认为当前脚本运行目录下的  ~/weiboImgs文件夹
@@ -29,7 +30,7 @@ def save_img(img_url,file_name,file_path):
 
 class MongoDBPipleline(object):
     def __init__(self):
-        client = pymongo.MongoClient("localhost", 27017)
+        client = pymongo.MongoClient(DBADDRESS, 27017)
         db = client["Sina"]
         self.Information = db["Information"]
         self.Tweets = db["Tweets"]

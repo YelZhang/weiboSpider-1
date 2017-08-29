@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import pymongo
 from sina.settings import SHENGHUI_KEYS
+from account import DBADDRESS
+
 class MongoDB():
     def __init__(self):
-        client = pymongo.MongoClient("localhost", 27017)
+        client = pymongo.MongoClient(DBADDRESS, 27017)
         db = client["Sina"]
         self.Information = db["Information"] #某个具体ID的微博信息
         self.Tweets = db["Tweets"] #一张Tweets的表记录所有的微博
@@ -50,17 +52,25 @@ class MongoDB():
         else:
             return True
 
+    def set_all_unsearched(self):
+        if self.Searchs.find({'searched':True}) == None:
+            pass
+        else:
+            cursor = self.Searchs.find({'searched':True})
+            for key in cursor:
+                self.Searchs.find_one_and_update(key,{'$set':{'searched':False}})
+                print key['_id']
 
 def set_keys():
     db = MongoDB()
     for key in SHENGHUI_KEYS:
-        item = {'key': '大连约拍', 'isv': '0', 'gender': '2', 'sbirth': '1992', 'ebirth': '1998', 'searched':False}
+        item = {'key': '大连摄影', 'isv': '0', 'gender': '2', 'sbirth': '1992', 'ebirth': '1998', 'searched':False}
         # print key
         key_str = str(key)
         print key_str
         # print type(key_str)
         # print type('约拍')
-        key_str = key_str + '约拍'
+        key_str = key_str + '摄影'
         print key_str
         item['key'] = key_str
         item2 = item
@@ -68,6 +78,10 @@ def set_keys():
         db.add_searchs(item)
         db.add_searchs(item2)
 
+def set_allkeys_unsearched():
+    db = MongoDB()
+    db.set_all_unsearched()
 
 if __name__ == '__main__':
-    set_keys()
+    # set_keys()
+    set_allkeys_unsearched()

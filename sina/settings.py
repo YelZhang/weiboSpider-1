@@ -13,12 +13,13 @@ BOT_NAME = 'sina'
 
 SPIDER_MODULES = ['sina.spiders']
 NEWSPIDER_MODULE = 'sina.spiders'
-DOWNLOAD_DELAY = 4 
+DOWNLOAD_DELAY = 0.25
 
 DOWNLOADER_MIDDLEWARES = {
 	'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware':None,
     "sina.middlewares.UserAgentMiddleware": 401,
     "sina.middlewares.CookiesMiddleware": 402,
+    "sina.middlewares.RandomProxyMiddleware":403,
 }
 
 ITEM_PIPELINES = {
@@ -118,4 +119,5 @@ SCHOOL_KEYS = ["西安交通大学","南开大学","国防科学技术大学","�
 
 SHENGHUI_KEYS = ["合肥","太原","沈阳","银川","昆明","武汉","贵阳","长春","兰州","广州","西宁","南昌","西安","成都","海口","拉萨","福州","南京","杭州","南宁","郑州","乌鲁木齐","呼和浩特","济南","哈尔滨","石家庄","长沙",]
 KEYS = ['旅行','摄影','美食','健身','旅游']
+
 

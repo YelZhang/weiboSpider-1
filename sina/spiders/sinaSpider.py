@@ -84,24 +84,46 @@ class SinaspiderSpider(CrawlSpider):
                 informationItems['Used'] = False
                 yield informationItems
 
-            # 微博入口
-            tweets_container_id = informations["tabsInfo"]["tabs"][1]["containerid"]
-            url_tweets = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s" % (
-                response.meta["ID"], tweets_container_id)
-            yield Request(url=url_tweets, meta={"ID": response.meta["ID"],'owner':informations["userInfo"]["screen_name"]},
-            callback=self.parseTweets, dont_filter=True)
+            # # 微博入口
+            # tweets_container_id = informations["tabsInfo"]["tabs"][1]["containerid"]
+            # url_tweets = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s" % (
+            #     response.meta["ID"], tweets_container_id)
+            # yield Request(url=url_tweets, meta={"ID": response.meta["ID"],'owner':informations["userInfo"]["screen_name"]},
+            # callback=self.parseTweets, dont_filter=True)
+
+            # 原创微博入口
+            # 先请求一次获得微博主页
+
 
             # 详细信息入口
             info_container_tabs = informations["tabsInfo"]["tabs"]
+
+
+            #原创微博入口
+            #先获取一个主页的url
+
             # info_container_id = ''
+            info_raw_id = ''
             for tab in info_container_tabs:
                 if tab['tab_type'] == "profile":
                     info_container_id = tab['containerid'] + \
                         '_' + '-' + '_INFO'
-                    print info_container_id
+                    # print info_container_id
+                    info_raw_id = tab['containerid']
+                    home_url = 'https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s' % (
+                        response.meta["ID"], info_raw_id)
+                    yield Request(url=home_url, meta={"detail_id": info_raw_id, 'ID': response.meta["ID"],
+                                                'owner': informations["userInfo"]["screen_name"]},
+                            callback=self.parseHome, dont_filter=True)
+
+
                     url_details = 'https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s' % (
                         response.meta["ID"], info_container_id)
-                    yield Request(url=url_details, meta={"detail_id": info_container_id,'ID':response.meta["ID"]}, callback=self.parseDetails, dont_filter=True)
+                    yield Request(url=url_details, meta={"detail_id": info_container_id,'ID':response.meta["ID"],'owner':informations["userInfo"]["screen_name"]},
+                                  callback=self.parseDetails, dont_filter=True)
+                    break
+
+            #处理主页获取原创微博的ID
 
             # 关注者入口
             # if informations.get("follow_scheme", ""):
@@ -130,17 +152,51 @@ class SinaspiderSpider(CrawlSpider):
             print "###########################"
             return
 
+    def parseHome(self,response):
+        if len(response.body) > 50:
+            print "###########################"
+            print "Fetch Home Success"
+            print "###########################"
+            infos = json.loads(response.body)
+            if infos.get('cards', ''):
+                cards = infos['cards']
+                for card in cards:
+                    if card['card_type'] == 6:
+                        print '========================================='
+                        #获得原创ID的那一串数字
+                        ori_ID = re.findall(r'\d+',card['actionlog']['oid'])[0]
+                        ori_url = 'https://m.weibo.cn/api/container/getIndex?containerid={ori_id}_-_WEIBO_SECOND_PROFILE_WEIBO_ORI&type=uid&page_type=03&value={value}'.format(
+                            ori_id = ori_ID,value=response.meta['ID']
+                        )
+                        print 'ori_ID:',ori_ID
+                        yield Request(url=ori_url, meta={'ID': response.meta["ID"],'ori_id': ori_ID, 'owner':response.meta['owner']},
+                                      callback=self.parseTweets, dont_filter=True)
+
     def parseDetails(self, response):
         if len(response.body) > 50:
             print "###########################"
             print "Fetch InfoDetails Success"
             print "###########################"
+            print response.url
             infos = json.loads(response.body)
             details = InfoDetailsItem()
             details['_id'] = response.meta['detail_id']
             details['ID'] = response.meta['ID']
             if infos.get('cards', ''):
                 cards = infos['cards']
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print json.dumps(cards)
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print '========================================='
+                print '========================================='
                 for card in cards:
                     if card.get('card_group', ''):
                         card_group = card['card_group']
@@ -168,12 +224,13 @@ class SinaspiderSpider(CrawlSpider):
                                     pass
             yield details
 
+
     def parseTweets(self, response):
         if len(response.body) > 50:
             print "###########################"
             print "Fetch Tweets Success"
             print "###########################"
-
+            ori_ID = response.meta['ori_id']
             tweets = json.loads(response.body)
             ID = response.meta["ID"]
             Owner = response.meta["owner"]
@@ -186,13 +243,13 @@ class SinaspiderSpider(CrawlSpider):
                     page = str(page)
                 else:
                     return
-                if tweets["cardlistInfo"].get("containerid", ""):
-                    containerid = tweets["cardlistInfo"]["containerid"]
+                # if tweets["cardlistInfo"].get("containerid", ""):
+                #     containerid = tweets["cardlistInfo"]["containerid"]
                 for card in cards:
                     mblog = card.get('mblog', '')
                     if mblog:
                         tweetsItems = TweetsItem()
-                        tweetsItems["_id"] = card["itemid"]
+                        tweetsItems["_id"] = mblog["id"]
                         tweetsItems["ID"] = ID
                         tweetsItems["Owner"] = Owner
                         tweetsItems["Used"] = False
@@ -228,9 +285,13 @@ class SinaspiderSpider(CrawlSpider):
                     print "Fetch Tweets Finish"
                     print "###########################"
                     return
-                url_tweets = "https://m.weibo.cn/api/container/getIndex?type=uid&value=%s&containerid=%s&page=%s" % (
-                    ID, containerid, page)
-                yield Request(url=url_tweets, meta={"ID": ID}, callback=self.parseTweets, dont_filter=True)
+                # url_tweets = "https://m.weibo.cn/api/container/getIndex?type=uid&value={value}&containerid={ori_id}&page=%s" % (
+                    # ID, containerid, page)
+                ori_url = 'https://m.weibo.cn/api/container/getIndex?containerid={ori_id}_-_WEIBO_SECOND_PROFILE_WEIBO_ORI' \
+                          '&type=uid&page_type=03&value={value}&page={page}'.format(
+                    ori_id=ori_ID, value=response.meta['ID'],page=page
+                )
+                yield Request(url=ori_url, meta={"ID": ID}, callback=self.parseTweets, dont_filter=True)
             else:
                 return
         else:
